@@ -1,7 +1,9 @@
 package org.bahmni.reports.web;
 
+import net.sf.dynamicreports.jasper.base.reporthandler.JasperReportBuilderHandler;
 import net.sf.dynamicreports.jasper.builder.JasperConcatenatedReportBuilder;
 import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
+import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,6 +15,7 @@ import org.bahmni.reports.model.Reports;
 import org.bahmni.reports.report.BahmniReportBuilder;
 import org.bahmni.reports.template.BaseReportTemplate;
 import org.bahmni.reports.util.BahmniReportUtil;
+import org.bahmni.reports.util.JasperReportRtlUtil;
 import org.bahmni.webclients.HttpClient;
 
 import java.io.OutputStream;
@@ -22,6 +25,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 import static net.sf.dynamicreports.report.builder.DynamicReports.concatenatedReport;
 
@@ -50,17 +55,36 @@ public class ReportGenerator {
     public void invoke() throws Exception {
         ArrayList<AutoCloseable> resources = new ArrayList<>();
         try {
-            validateParams();
+        	Locale currentLoc = Locale.ENGLISH;
+        	if (!StringUtils.isEmpty(reportParams.getLanguageTag())) {
+        		currentLoc = Locale.forLanguageTag(reportParams.getLanguageTag());
+        	}
+        	ResourceBundle reportLocaleBundle = null;
+        	if (currentLoc!=null) {
+        		reportLocaleBundle = ResourceBundle.getBundle("ReportLabels", currentLoc);
+        	}
             Report report = Reports.find(reportParams.getName(), bahmniReportsProperties.getConfigFileUrl(),httpClient);
-            validateReport(report);
             report.setHttpClient(httpClient);
             validateResponseTypeSupportedFor(report, reportParams.getResponseType());
             BaseReportTemplate reportTemplate = report.getTemplate(bahmniReportsProperties);
+            if (reportLocaleBundle!=null) {
+            	reportTemplate.setLocaleBundle(reportLocaleBundle);
+            }
             Connection connection = allDatasources.getConnectionFromDatasource(reportTemplate);
             BahmniReportBuilder reportBuilder = BahmniReportUtil.build(report, connection, reportParams.getStartDate(),
                     reportParams.getEndDate(), resources, reportParams.getPaperSize(), bahmniReportsProperties);
             List<JasperReportBuilder> reports = reportBuilder.getReportBuilders();
-            JasperConcatenatedReportBuilder concatenatedReportBuilder = concatenatedReport().concatenate(reports.toArray(new JasperReportBuilder[reports.size()]));
+            JasperReportBuilderHandler reportBuilderHandler = new JasperReportBuilderHandler();
+            reportBuilderHandler.concatenate(reports.toArray(new JasperReportBuilder[reports.size()]));
+            JasperConcatenatedReportBuilder concatenatedReportBuilder = new JasperConcatenatedReportBuilder(reportBuilderHandler);
+            if ("ar".equalsIgnoreCase(reportParams.getLanguageTag())) {
+        		List<JasperPrint> printPagesList = reportBuilderHandler.getPrintList();
+        		JasperReportRtlUtil rtlMirror = new JasperReportRtlUtil();
+        		for (JasperPrint page : printPagesList) {
+    				rtlMirror.mirrorLayout(page);
+    			}
+        	}
+            //JasperConcatenatedReportBuilder concatenatedReportBuilder = concatenatedReport().concatenate(reports.toArray(new JasperReportBuilder[reports.size()]));
             converter.applyReportTemplates(reports, reportParams.getResponseType());
             converter.convertToResponseType(reportParams, bahmniReportsProperties.getMacroTemplatesTempDirectory(), outputStream, concatenatedReportBuilder);
             resources.add(connection);

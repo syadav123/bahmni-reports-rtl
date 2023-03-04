@@ -4,8 +4,12 @@ import net.sf.dynamicreports.jasper.builder.JasperReportBuilder;
 import net.sf.dynamicreports.report.base.DRReport;
 import net.sf.dynamicreports.report.base.column.DRColumn;
 import net.sf.dynamicreports.report.constant.PageType;
+import net.sf.dynamicreports.report.constant.RunDirection;
+import net.sf.jasperreports.engine.JRParameter;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
+import org.apache.commons.lang.StringUtils;
 import org.bahmni.reports.BahmniReportsProperties;
 import org.bahmni.reports.model.Config;
 import org.bahmni.reports.model.GenericReportsConfig;
@@ -23,13 +27,43 @@ import static net.sf.dynamicreports.report.builder.DynamicReports.report;
 
 public class BahmniReportUtil {
 
+	/*private static ResourceBundle reportLocaleBundle = null;
+
+	public static void setLocaleBundle(ResourceBundle lBundle) {
+		reportLocaleBundle = lBundle;
+	}*/
+
+    public static String getResourceBundleLabel(String key, ResourceBundle reportLocaleBundle) {
+    	try {
+    		String newKey = "";
+    		if (!StringUtils.isEmpty(key)) {
+    			newKey = key.trim();
+    			newKey = newKey.replaceAll(" ", "_");
+    		}
+	    	if (reportLocaleBundle!=null) {
+	    		newKey = new String(reportLocaleBundle.getString(newKey).getBytes("8859_1"), "UTF-8");
+	    		return newKey;
+	    	}
+    	} catch (Exception e) {
+    	}
+    	return key;
+    }
+
     public static BahmniReportBuilder build(Report report, Connection connection,
                                             String startDate, String endDate,
                                             List<AutoCloseable> resources, PageType pageType,
                                             BahmniReportsProperties bahmniReportsProperties) throws Exception {
         BaseReportTemplate reportTemplate = report.getTemplate(bahmniReportsProperties);
+        ResourceBundle reportLocaleBundle = reportTemplate.getLocaleBundle();
         JasperReportBuilder reportBuilder = report();
-        reportBuilder = new ReportHeader(bahmniReportsProperties.getReportsTimeZone()).add(reportBuilder, report.getName(), startDate, endDate);
+        reportBuilder = new ReportHeader().add(reportBuilder, getResourceBundleLabel(report.getName(), reportLocaleBundle), startDate, endDate);
+        reportBuilder = reportBuilder.setResourceBundle(reportLocaleBundle);
+        reportBuilder = reportBuilder.setLocale(reportLocaleBundle.getLocale());
+        /*if ("ar".equalsIgnoreCase(reportLocaleBundle.getLocale().getLanguage())) {
+        	reportBuilder = reportBuilder.setColumnDirection(RunDirection.RIGHT_TO_LEFT);
+        }*/
+        reportBuilder = reportBuilder.setParameter(JRParameter.REPORT_RESOURCE_BUNDLE, reportLocaleBundle);
+        reportBuilder = reportBuilder.setParameter(JRParameter.REPORT_LOCALE, reportLocaleBundle.getLocale());
         BahmniReportBuilder build = reportTemplate.build(connection, reportBuilder, report, startDate, endDate, resources, pageType);
         excludeColumns(report.getConfig(), reportBuilder);
         orderColumns(report.getConfig(), reportBuilder);
