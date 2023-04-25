@@ -34,7 +34,7 @@ import net.sf.dynamicreports.report.constant.VerticalAlignment;
 import net.sf.dynamicreports.report.definition.ReportParameters;
 
 import java.awt.*;
-//import java.util.Locale;
+import java.util.Locale;
 
 import static net.sf.dynamicreports.report.builder.DynamicReports.*;
 
@@ -61,6 +61,18 @@ public class Templates {
     public static final ComponentBuilder<?, ?> footerComponent;
 
     public static final ReportTemplateBuilder excelReportTemplate;
+
+    private static Locale locale = null;
+	public static void setLocale(Locale locale) {
+		locale = locale;
+	}
+
+	public static Locale getLocale() {
+		if (locale != null) {
+			return locale;
+		}
+		return Locale.ENGLISH;
+	}
 
     static {
         rootStyle = stl.style().setPadding(2);
@@ -101,6 +113,7 @@ public class Templates {
 
         reportTemplate = template()
                 //.setLocale(Locale.ENGLISH)
+        		.setLocale(locale)
                 .setColumnStyle(columnStyle)
                 .setColumnTitleStyle(columnTitleStyle)
                 .setGroupStyle(groupStyle)
@@ -116,6 +129,7 @@ public class Templates {
 
         excelReportTemplate = template()
                 //.setLocale(Locale.ENGLISH)
+        		.setLocale(locale)
                 .setColumnStyle(columnStyle)
                 .setColumnTitleStyle(columnTitleStyle)
                 .setGroupStyle(groupStyle)

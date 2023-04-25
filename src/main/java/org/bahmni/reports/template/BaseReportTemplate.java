@@ -32,7 +32,7 @@ public abstract class BaseReportTemplate<T extends Config> {
 		localeBundle = lBundle;
 	}
 
-	public ResourceBundle getLocaleBundle() {
+	public static ResourceBundle getLocaleBundle() {
 		return localeBundle;
 	}
 

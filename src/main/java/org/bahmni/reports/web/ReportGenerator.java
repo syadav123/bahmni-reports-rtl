@@ -14,6 +14,7 @@ import org.bahmni.reports.model.Report;
 import org.bahmni.reports.model.Reports;
 import org.bahmni.reports.report.BahmniReportBuilder;
 import org.bahmni.reports.template.BaseReportTemplate;
+import org.bahmni.reports.template.Templates;
 import org.bahmni.reports.util.BahmniReportUtil;
 import org.bahmni.reports.util.JasperReportRtlUtil;
 import org.bahmni.webclients.HttpClient;
@@ -61,6 +62,7 @@ public class ReportGenerator {
         	}
         	ResourceBundle reportLocaleBundle = null;
         	if (currentLoc!=null) {
+        		Templates.setLocale(currentLoc);
         		reportLocaleBundle = ResourceBundle.getBundle("ReportLabels", currentLoc);
         	}
             Report report = Reports.find(reportParams.getName(), bahmniReportsProperties.getConfigFileUrl(),httpClient);

@@ -56,14 +56,16 @@ public class BahmniReportUtil {
         BaseReportTemplate reportTemplate = report.getTemplate(bahmniReportsProperties);
         ResourceBundle reportLocaleBundle = reportTemplate.getLocaleBundle();
         JasperReportBuilder reportBuilder = report();
+        
         reportBuilder = new ReportHeader().add(reportBuilder, getResourceBundleLabel(report.getName(), reportLocaleBundle), startDate, endDate);
+        reportBuilder = reportBuilder.setParameter(JRParameter.REPORT_RESOURCE_BUNDLE, reportLocaleBundle);
+        reportBuilder = reportBuilder.setParameter(JRParameter.REPORT_LOCALE, reportLocaleBundle.getLocale());
         reportBuilder = reportBuilder.setResourceBundle(reportLocaleBundle);
         reportBuilder = reportBuilder.setLocale(reportLocaleBundle.getLocale());
         /*if ("ar".equalsIgnoreCase(reportLocaleBundle.getLocale().getLanguage())) {
         	reportBuilder = reportBuilder.setColumnDirection(RunDirection.RIGHT_TO_LEFT);
         }*/
-        reportBuilder = reportBuilder.setParameter(JRParameter.REPORT_RESOURCE_BUNDLE, reportLocaleBundle);
-        reportBuilder = reportBuilder.setParameter(JRParameter.REPORT_LOCALE, reportLocaleBundle.getLocale());
+        
         BahmniReportBuilder build = reportTemplate.build(connection, reportBuilder, report, startDate, endDate, resources, pageType);
         excludeColumns(report.getConfig(), reportBuilder);
         orderColumns(report.getConfig(), reportBuilder);
