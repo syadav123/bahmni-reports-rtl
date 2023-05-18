@@ -52,7 +52,7 @@ public class SqlReportTemplate extends BaseReportTemplate<SqlReportConfig> {
         return new BahmniReportBuilder(jasperReport);
     }
 
-    private String getSqlString(Report<SqlReportConfig> reportConfig, String startDate, String endDate) {
+    public String getSqlString(Report<SqlReportConfig> reportConfig, String startDate, String endDate) {
         String sql = getFileContent(reportConfig.getConfig().getSqlPath(), true);
         ST sqlTemplate = new ST(sql, '#', '#');
         sqlTemplate.add("startDate", startDate);

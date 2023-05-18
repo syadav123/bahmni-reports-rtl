@@ -26,6 +26,7 @@ import static org.bahmni.reports.model.Constants.*;
         @JsonSubTypes.Type(value = ElisSqlReport.class, name = "ElisGeneric"),
         @JsonSubTypes.Type(value = BahmniMartSqlReport.class, name = "MartGeneric"),
         @JsonSubTypes.Type(value = MRSSqlReport.class, name = "MRSGeneric"),
+        @JsonSubTypes.Type(value = MRSSqlReportUncompress.class, name = "MRSGenericUncompress"),
         @JsonSubTypes.Type(value = ERPSqlReport.class, name = "ERPGeneric"),
         @JsonSubTypes.Type(value = IpdOpdVisitCountReport.class, name = "IpdOpdVisitCount"),
         @JsonSubTypes.Type(value = IpdPatientsReport.class, name = "ipdPatients"),
